@@ -1,4 +1,4 @@
-/* Storm Buddies - visual upgrade map (mine-cart rails) and relic map (geological constellation). */
+/* Storm Buddies - visual upgrade map (balloon rigging ropes) and relic map (storm constellation). */
 (function (root) {
 'use strict';
 const D = root.SBData;
@@ -49,14 +49,14 @@ class NodeMap {
   py(y) { return (y + 0.6) * this.o.G; }
   decorUp() {
     const G = this.o.G;
-    // strata background bands
+    // cloud-layer bands (altitude tiers)
     for (let i = 0; i <= this.maxY; i += 2) {
       const band = el('div', 'band'); const P = D.layer(Math.floor(i / 2));
-      band.style.top = this.py(i + 0.5) + 'px'; band.style.height = 2 * G + 'px'; band.style.background = `linear-gradient(${P.base}55, ${P.dark}88)`;
+      band.style.top = this.py(i + 0.5) + 'px'; band.style.height = 2 * G + 'px';
+      band.style.background = `linear-gradient(${P.base}44, ${P.dark}77)`;
       this.inner.appendChild(band);
     }
     const sky = el('div', 'skyband'); sky.style.height = this.py(0) + 'px'; this.inner.appendChild(sky);
-    // branch labels
     const seen = {};
     for (const n of this.o.nodes) if (!n.parent && !seen[n.br]) {
       seen[n.br] = 1;
@@ -64,21 +64,24 @@ class NodeMap {
       l.style.left = this.px(n.x) + 'px'; l.style.top = (this.py(0) - G * 0.48) + 'px'; l.style.color = D.BR_COL[n.br];
       this.inner.appendChild(l);
     }
-    const st = el('div', 'station', IH('balloon', 'big') + '<small>Meadow</small>');
+    const st = el('div', 'station', IH('balloon', 'big') + '<small>Sky Dock</small>');
     st.style.left = this.px(1.5) + 'px'; st.style.top = (this.py(0) - G * 0.32) + 'px';
     this.inner.appendChild(st);
   }
   decorPr() {
-    const core = el('div', 'station', IH('cloud', 'big') + '<small>Your skies</small>');
+    const core = el('div', 'station', IH('star', 'big') + '<small>Constellation</small>');
     core.style.left = this.px(0) + 'px'; core.style.top = (this.py(0) - this.o.G * 0.1) + 'px';
     this.inner.appendChild(core);
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 55; i++) {
       const s = el('div', 'star'); s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%';
-      s.style.animationDelay = (Math.random() * 3) + 's'; this.inner.appendChild(s);
+      s.style.animationDelay = (Math.random() * 3) + 's';
+      if (i % 7 === 0) s.style.transform = 'scale(1.6)';
+      this.inner.appendChild(s);
     }
+    // soft storm-spiral glow rings instead of geology layers
     for (let i = 0; i < 4; i++) {
       const b = el('div', 'layer'); b.style.top = this.py(1 + i * 2 - 0.5) + 'px'; b.style.height = this.o.G * 2 + 'px';
-      b.style.background = `linear-gradient(90deg, transparent, ${['#5a3a8a', '#2a5a8a', '#8a3a2a', '#8a7a2a'][i]}33, transparent)`;
+      b.style.background = `radial-gradient(ellipse at 50% 50%, ${['#7a5ad0', '#4a80d0', '#d070a0', '#e0c060'][i]}28, transparent 70%)`;
       this.inner.appendChild(b);
     }
   }
@@ -89,9 +92,13 @@ class NodeMap {
     if (n.parent) { const p = this.o.nodes.find((q) => q.id === n.parent); x1 = this.px(p.x); y1 = this.py(p.y); }
     else if (this.o.kind === 'up') { x1 = x2; y1 = this.py(0); }
     else { x1 = this.px(0); y1 = this.py(0) - G * 0.1; }
-    if (this.o.kind === 'pr') return `M${x1},${y1} L${x2},${y2}`;
+    if (this.o.kind === 'pr') {
+      const mx = (x1 + x2) / 2 + (y2 - y1) * 0.18, my = (y1 + y2) / 2 - (x2 - x1) * 0.12;
+      return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`;
+    }
     if (x1 === x2 || y1 === y2) return `M${x1},${y1} L${x2},${y2}`;
-    return `M${x1},${y1} L${x1},${y2} L${x2},${y2}`;
+    const mx = x1 + (x2 - x1) * 0.35, my = y1 + (y2 - y1) * 0.65;
+    return `M${x1},${y1} Q${mx},${my} ${x2},${y2}`;
   }
   vis(n) { return this.o.vis ? this.o.vis(n.id) : 'show'; }
   refresh() {
@@ -100,7 +107,7 @@ class NodeMap {
     const add = (d, cls, col) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', cls); if (col) p.style.stroke = col; svg.appendChild(p); };
     if (o.kind === 'up') {
       const d = `M${this.px(this.minX + 0.6)},${this.py(0)} L${this.px(this.maxX - 0.6)},${this.py(0)}`;
-      add(d, 'ties'); add(d, 'rail on', '#d9b38c'); add(d, 'gap');
+      add(d, 'ties'); add(d, 'rail on', '#a8d4ff'); add(d, 'gap');
     }
     const shownBr = {};
     for (const n of o.nodes) {
@@ -152,7 +159,7 @@ class NodeMap {
     if (!this.fog) { this.fog = el('div', 'mapfog'); this.inner.appendChild(this.fog); }
     this.fog.style.top = (revealH - o.G * 0.35) + 'px'; this.fog.style.height = Math.max(0, h - revealH + o.G * 0.35) + 'px';
     this.fog.classList.toggle('hidden', h - revealH < o.G * 0.5);
-    this.fog.innerHTML = hidden && o.kind === 'up' ? `<span>${IH('lock')}${hidden} more upgrades above. Buy upgrades to reveal them</span>` : '';
+    this.fog.innerHTML = hidden && o.kind === 'up' ? `<span>${IH('lock')}${hidden} more rigging above. Buy upgrades to reveal them</span>` : '';
     this.hiddenCount = hidden;
   }
   /* centre of the visible part of the map */

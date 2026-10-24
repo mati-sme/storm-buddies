@@ -10,7 +10,7 @@ const COIN = 10;
 const CEILING = 100; // height to punch the storm ceiling (prestige)
 
 const LAYERS = [
-  { name: 'Meadow Air',     base: '#7ec8e8', dark: '#4a9ec4', light: '#b8e4f8', speck: '#ffffff', bg: '#5ab0d8' },
+  { name: 'Dock Breeze',     base: '#7ec8e8', dark: '#4a9ec4', light: '#b8e4f8', speck: '#ffffff', bg: '#5ab0d8' },
   { name: 'Cotton Clouds',  base: '#c8dce8', dark: '#8a9eac', light: '#e8f4fc', speck: '#ffffff', bg: '#6a98b8' },
   { name: 'Wind Shear',     base: '#6a8ab0', dark: '#3a5a78', light: '#9ab8d0', speck: '#d0e8ff', bg: '#3a5878' },
   { name: 'Storm Shelf',    base: '#4a5a88', dark: '#2a3458', light: '#7a8ab8', speck: '#a8c0ff', bg: '#1e2848' },
@@ -158,7 +158,7 @@ const PRESTIGE = [
   { id: 'p_bond', name: 'Buddy Bond', icon: 'heart', x: 2, y: 4.5, parent: 'h_fox', max: 12, cost: 60, g: 1.75, desc: 'All helpers pop 35% faster' },
   { id: 'p_auto', name: 'Pilot Notes', icon: 'notebook', x: -2, y: 4.5, parent: 'h_fox', max: 1, cost: 400, g: 1, desc: 'Unlocks Auto-buy on the Upgrade Map' },
   { id: 'h_bunny', name: 'Storm Bunny', icon: 'bunny', x: 0, y: 5.5, parent: 'h_fox', max: 1, cost: 4000, g: 1, desc: 'Unlock helper: Storm Bunny + its Upgrade Map branch', helper: 'bunny' },
-  { id: 'p_time', name: 'Deep Breath', icon: 'hourglass', x: 2, y: 5.5, parent: 'h_bunny', max: 5, cost: 1000, g: 2.2, desc: 'Wind fades 5% slower' },
+  { id: 'p_time', name: 'Long Gust', icon: 'hourglass', x: 2, y: 5.5, parent: 'h_bunny', max: 5, cost: 1000, g: 2.2, desc: 'Wind fades 5% slower' },
   { id: 'p_luck', name: 'Lucky Charm', icon: 'clover', x: -2, y: 5.5, parent: 'h_bunny', max: 8, cost: 800, g: 1.6, desc: 'Crates and orbs are worth +50%' },
   { id: 'p_team', name: 'Sky Pack', icon: 'star', x: 0, y: 6.5, parent: 'h_bunny', max: 1, cost: 12000, g: 1, desc: 'All unlocked helpers work at once (pack mode)' },
   { id: 'p_core', name: 'Heart of the Storm', icon: 'heart:#ff8a3c', x: 0, y: 7.5, parent: 'p_team', max: 5, cost: 20000, g: 1.5, desc: 'Pop power x2 and +5 s wind' }

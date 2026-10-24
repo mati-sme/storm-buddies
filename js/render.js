@@ -89,10 +89,11 @@ class Renderer {
     if (t === T.SCRAP) ctx.drawImage(S.scrapTex(r.ore[x] || 0), X, Y, ts, ts);
     else if (t === T.FLASK) ctx.drawImage(S.flaskTex(), X + ts * 0.15, Y + ts * 0.1, ts * 0.7, ts * 0.8);
     else if (t === T.CHEST) ctx.drawImage(S.chestTex(), X + ts * 0.1, Y + ts * 0.15, ts * 0.8, ts * 0.7);
-    // grass / meadow strip at surface
+    // sky-dock plank strip at surface
     if (y === 0) {
-      ctx.fillStyle = '#5aaa4a'; ctx.fillRect(X, Y, ts, ts * 0.2);
-      ctx.fillStyle = '#7ed06a'; ctx.fillRect(X, Y, ts, ts * 0.08);
+      ctx.fillStyle = '#8a6a48'; ctx.fillRect(X, Y, ts, ts * 0.18);
+      ctx.fillStyle = '#c8a070'; ctx.fillRect(X, Y, ts, ts * 0.07);
+      ctx.fillStyle = '#5a4030'; ctx.fillRect(X + ts * 0.45, Y, ts * 0.08, ts * 0.18);
     }
     const ratio = r.hp[x] / (r.max[x] || 1);
     if (ratio < 0.999) {
@@ -130,14 +131,23 @@ class Renderer {
         ctx.fillRect(x, yBot - base - h, pu * 2, base + h + 2);
       }
     };
-    hills(ts * 0.9, ts * 1.5, 0.006, '#7ab8a0', 1.3);
-    hills(ts * 0.3, ts * 1.0, 0.011, '#5aaa4a', 0.2);
+    // soft cloud islands (not grassy hills)
+    hills(ts * 0.55, ts * 1.2, 0.005, 'rgba(255,255,255,0.85)', 1.3);
+    hills(ts * 0.2, ts * 0.7, 0.01, 'rgba(200,220,255,0.75)', 0.4);
   }
 
   drawMeadow(w, surfY) {
     const ctx = this.ctx, ts = this.ts, wide = this.landscape();
     const rail = wide ? (this.railW || 0) : 0, right = wide ? this.w * (this.campRight || 0.64) : this.w;
     const cx = rail + (right - rail) / 2, u = Math.min(ts, (right - rail) / 13);
+    // floating dock planks
+    ctx.fillStyle = '#6a4a30'; ctx.fillRect(cx - u * 5.5, surfY - u * 0.15, u * 11, u * 0.55);
+    ctx.fillStyle = '#c8a070'; ctx.fillRect(cx - u * 5.5, surfY - u * 0.15, u * 11, u * 0.22);
+    for (let i = -5; i <= 5; i++) { ctx.fillStyle = '#5a4030'; ctx.fillRect(cx + i * u - u * 0.05, surfY - u * 0.15, u * 0.1, u * 0.55); }
+    // rope posts
+    ctx.fillStyle = '#d8e8ff'; ctx.fillRect(cx - u * 5.2, surfY - u * 2.2, u * 0.18, u * 2.2); ctx.fillRect(cx + u * 5, surfY - u * 2.2, u * 0.18, u * 2.2);
+    ctx.strokeStyle = 'rgba(200,220,255,0.7)'; ctx.lineWidth = Math.max(2, u * 0.08);
+    ctx.beginPath(); ctx.moveTo(cx - u * 5.1, surfY - u * 2); ctx.quadraticCurveTo(cx, surfY - u * 2.8, cx + u * 5.1, surfY - u * 2); ctx.stroke();
     // balloon parked
     const bal = S.balloon(w.st.balTier || 0);
     const bw = u * 3.2, bh = bal.height * bw / bal.width;
@@ -265,12 +275,12 @@ class Renderer {
 
     if (this.campView && surfY > 0) this.drawMeadow(w, surfY);
 
-    // creatures / wisps
+    // creatures / storm birds
     if (w.creatures) for (const c of w.creatures) {
       if (c.dead) continue;
       const X = this.sx(c.px || c.x), Y = this.sy(c.py || c.y);
       const bob = Math.sin(this.t * 4 + c.x) * ts * 0.08;
-      ctx.drawImage(S.wisp(c.type || { tint: '#a080ff' }), X, Y + bob, ts, ts);
+      ctx.drawImage(S.bird(c.type || { tint: '#a080ff' }), X, Y + bob, ts, ts);
     }
 
     if (w.buddies) for (const b of w.buddies) this.drawBuddy(w, b, ts);

@@ -22,7 +22,7 @@ const I = {
   bolt: { r: ['....yy....', '...yYy....', '..yYwYy...', '.yYwwwYy..', 'yyYwwYyyyo', '..yYYy....', '...yYy....', '....yY....', '.....y....', '..........'], t: ['y', 'Y', 'o'] },
   sparkle: { r: ['....y.....', '....y.....', '...yYy....', '..yYwYy...', 'yyYwwwYyy.', '..yYwYy...', '...yYy....', '....y.....', '....y.....', '..........'], t: ['y', 'Y', 'o'] },
   tent: { r: ['....u.....', '....uu....', '....U.....', '...UUu....', '..UUuuu...', '..UUudu...', '.UUudddU..', '.UUudddU..', 'UUuudddUU.', 'nnnnnnnnn.'] },
-  rails: { r: ['...ay.y...', '..ayaYya..', 'hhhhhhhhhh', '.hGgggggh.', '.hggggggh.', '..hhhhhh..', '..d....d..', '.ddd..ddd.', '..d....d..', 'bbbbbbbbbb'] },
+  rails: { r: ['....u.....', '...UuU....', '..Uu.uU...', '.Uu...uU..', 'Uu.....uU.', 'uU.....Uu.', '.Uu...uU..', '..Uu.uU...', '...UuU....', '....u.....'] },
   relic: { r: ['...mmmm...', '..mMMMmq..', '..mMmmmq..', '..qqmqqq..', '..mMmmmq..', '..mMmmqq..', '...Mmmq...', '..mqqqqq..', '..mMmmmq..', '.qqqqqqqq.'] },
   flag: { r: ['..h.......', '..huuuu...', '..hUUuuuu.', '..hUuuuuuu', '..huuuuuu.', '..huuu....', '..h.......', '..h.......', '..h.......', '.hhh......'] },
   check: { r: ['..........', '........VV', '.......VVv', '......VVv.', 'VV...VVv..', 'vVV.VVv...', '.vVVVv....', '..vVv.....', '...v......', '..........'] },
@@ -69,9 +69,11 @@ const I = {
   fox: { r: ['.a......a.', '.aa.oooo.a', '..ooooooo.', '.oWEoWEoo.', '.oEEoEEoo.', '.oooNNooo.', '..ooCCoo..', '..oCCCCo..', '.PPooooPP.', '........aa'], pal: { o: '#e08040', C: '#ffd0a0', N: '#ffe066', a: '#c06028', P: '#ff9ab8' } },
   bunny: { r: ['..a....a..', '..aa..aa..', '..a.mm.a..', '...mmmm...', '..mWEmWEm.', '..mEEmEEm.', '..mmmNmm..', '...mCCm...', '..mmCCmm..', '.PPmmmmPP.'], pal: { m: '#e8e0f0', C: '#ffffff', N: '#b48cff', a: '#d0c8e0', P: '#b48cff' } },
   play: { r: ['.vv.......', '.vVvv.....', '.vVVvvv...', '.vVVVVvvv.', '.vVVVVVVvv', '.vVVVVVVvv', '.vVVVVvvv.', '.vVVvvv...', '.vVvv.....', '.vv.......'] },
+  close: { r: ['r......r..', '.r....r...', '..r..r....', '...rr.....', '...rr.....', '..r..r....', '.r....r...', 'r......r..', '..........', '..........'], t: ['r', 'R', 'e'] },
+  bird: { r: ['..........', '....ww....', '...wWWw...', '..wwWWww..', '.uwwwwwwu.', 'uUwwwwwwUn', '.uwwwwwwu.', '..u....u..', '..........', '..........'], t: ['u', 'U', 'n'] },
   cog: { r: ['..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........', '..........'] }
 };
-const ALIAS = { flaskbig: 'flask', firework: 'burst', cave: 'cloud', gear: 'bag', oil: 'wind', buddy: 'paw', lantern: 'wind', depth: 'height', pick: 'balloon', dynamite: 'bolt', sword: 'bolt' };
+const ALIAS = { flaskbig: 'flask', firework: 'burst', cave: 'cloud', gear: 'bag', oil: 'wind', buddy: 'paw', lantern: 'wind', depth: 'height', pick: 'balloon', dynamite: 'bolt', sword: 'bolt', wisp: 'bird', ore: 'cloud', dig: 'balloon', mine: 'balloon', rope: 'rails', ropes: 'rails', x: 'close' };
 
 function shade(hex, f) {
   const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;

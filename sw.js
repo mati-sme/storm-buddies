@@ -1,6 +1,6 @@
 /* Storm Buddies service worker: cache-first, relative paths (hosted under /storm-buddies/). Bump CACHE each release. */
 'use strict';
-const CACHE = 'storm-buddies-v1';
+const CACHE = 'storm-buddies-v2';
 const ASSETS = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'js/data.js', 'js/core.js', 'js/sprites.js', 'js/icons.js', 'js/audio.js', 'js/render.js', 'js/maps.js', 'js/game.js',

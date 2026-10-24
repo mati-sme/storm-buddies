@@ -192,7 +192,7 @@ const BUDDY_LINES = {
   gem: ['A BOLT!!', 'Sparkly!!', 'Lightning!!', 'Wow wow!'],
   chest: ['A sky crate!', 'Treasure!'],
   hurt: ['You okay?!', 'Ouch!', 'Watch the storm!'],
-  creature: ['Wisp!', 'Something sparkly-mean!', 'Eek!'],
+  creature: ['Bird!', 'Angry squawk!', 'Gust bird!'],
   kill: ['Paw!', 'Zapped!', 'Cleared!'],
   lowoil: ['Wind is fading...', 'Hurry!', 'Almost out of lift!'],
   record: ['Highest ever!', 'New record!', 'We\'ve never been here!'],
@@ -270,7 +270,7 @@ class World {
     for (const [x, y] of [[cx + 1, 2], [cx + 2, 2], [cx + 1, 3], [cx + 2, 3]]) put(x, y, T.SCRAP, 0);
     put(cx - 1, 6, T.CHEST);
     put(cx, 9, T.FLASK);
-    this.tutSpots = { ore: { x: cx + 1, y: 2 }, chest: { x: cx - 1, y: 6 } };
+    this.tutSpots = { scrap: { x: cx + 1, y: 2 }, chest: { x: cx - 1, y: 6 }, flask: { x: cx, y: 9 } };
   }
   mkActor(x, y) { return { x, y, px: x, py: y, face: 1, moveCd: 0, swingCd: 0, atkCd: 0, goal: null, goalT: 0, dig: null, digT: 0, hurtT: 0 }; }
   pick(k) { const a = BUDDY_LINES[k]; return a[Math.floor(Math.random() * a.length)]; }
@@ -279,9 +279,11 @@ class World {
   ensure(y) { const c = stratumOf(y); if (!this.chunks.has(c)) this.gen(c); }
   row(y) { this.ensure(y); return this.rows.get(y); }
   tile(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return T.WALL;
     if (x < 0 || x >= this.W) return T.WALL;
     if (y < 0) return y < -1 ? T.WALL : T.EMPTY;
-    return this.row(y).t[x];
+    const r = this.row(y);
+    return r ? r.t[x] : T.WALL;
   }
   setT(x, y, t) { const r = this.row(y); r.t[x] = t; }
 
@@ -326,7 +328,7 @@ class World {
         const hp = 3 * Math.pow(6, s);
         this.creatures.push({
           x: cx, y: cy, px: cx, py: cy, hp, max: hp, s,
-          type: { name: 'Storm Wisp', sprite: 'wisp', speed: 0.5, fly: true, tint: ['#a080ff', '#7ec8e8', '#ffe066', '#ff80d0'][s % 4] },
+          type: { name: 'Storm Bird', sprite: 'bird', speed: 0.5, fly: true, tint: ['#a080ff', '#7ec8e8', '#ffe066', '#ff80d0'][s % 4] },
           moveCd: rng(), atkCd: 1, awake: false, stun: 0, hitT: 0, dead: false, face: 1
         });
       }
@@ -630,6 +632,7 @@ class World {
     }
   }
 
+  step(dt, input) { return this.tick(dt, input); }
   tick(dt, input) {
     if (this.ended) return;
     this.time += dt;
@@ -661,9 +664,10 @@ class World {
     if (!this.oilHold) this.oil -= dt * st.burn;
     if (this.oilHold && this.blocksP >= 3) this.oilHold = false;
 
-    if (input) {
+    const dir = input && input.dir;
+    if (dir) {
       if (p.goal) this.goTo(p, p.goal.x, p.goal.y, st.power, st.swing, st.move, 'p');
-      else this.tryDir(p, input.x, input.y, st.power, st.swing, st.move, 'p');
+      else this.tryDir(p, dir.x, dir.y, st.power, st.swing, st.move, 'p');
     } else if (p.goal) this.goTo(p, p.goal.x, p.goal.y, st.power, st.swing, st.move, 'p');
 
     /* auto attack wisps */

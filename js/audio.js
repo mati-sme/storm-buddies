@@ -62,25 +62,25 @@ const SFX = {
   scrap(tier, gem) { this.ore(tier, gem); }
 };
 
-/* ---- music: 80 BPM, F major, 16 bars (A: F Dm Bb C / F Am Bb C, B: Dm Bb F C / Gm Bb C C) ----
-   camp = soft pad + marimba melody; dive adds bass, a light shaker and a counter-arp. */
+/* ---- music: 92 BPM, G major, airier sky tone (A: G Em C D / G Bm C D, B: Em C G D / Am C D D) ----
+   camp = soft pad + bright pluck; flight adds bass, airy noise and a counter-arp. */
 const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
-const CH = { F: [53, 57, 60], Dm: [50, 53, 57], Bb: [50, 53, 58], C: [52, 55, 60], Am: [52, 57, 60], Gm: [50, 55, 58] };
-const BASS = { F: 41, Dm: 38, Bb: 46, C: 48, Am: 45, Gm: 43 };
-const PROG = ['F', 'Dm', 'Bb', 'C', 'F', 'Am', 'Bb', 'C', 'Dm', 'Bb', 'F', 'C', 'Gm', 'Bb', 'C', 'C'];
+const CH = { G: [55, 59, 62], Em: [52, 55, 59], C: [52, 55, 60], D: [50, 54, 57], Bm: [54, 57, 62], Am: [52, 57, 60] };
+const BASS = { G: 43, Em: 40, C: 36, D: 38, Bm: 47, Am: 45 };
+const PROG = ['G', 'Em', 'C', 'D', 'G', 'Bm', 'C', 'D', 'Em', 'C', 'G', 'D', 'Am', 'C', 'D', 'D'];
 const MEL = [
-  [72, 0, 69, 0, 65, 67, 69, 0], [74, 0, 72, 69, 0, 0, 65, 0], [70, 0, 69, 0, 67, 0, 65, 67], [69, 0, 67, 0, 64, 0, 0, 0],
-  [72, 0, 69, 0, 65, 67, 69, 72], [76, 0, 74, 72, 0, 69, 0, 0], [74, 0, 72, 0, 70, 69, 67, 0], [67, 0, 0, 0, 0, 0, 0, 0],
-  [69, 0, 0, 72, 74, 0, 72, 0], [70, 0, 0, 74, 72, 0, 70, 0], [69, 0, 0, 72, 77, 0, 76, 74], [72, 0, 0, 0, 67, 0, 0, 0],
-  [70, 0, 0, 74, 79, 0, 77, 74], [77, 0, 74, 0, 72, 0, 70, 0], [72, 0, 74, 0, 76, 0, 79, 0], [77, 0, 0, 0, 0, 0, 0, 0]
+  [74, 0, 71, 0, 67, 69, 71, 0], [76, 0, 74, 71, 0, 0, 67, 0], [72, 0, 71, 0, 69, 0, 67, 69], [71, 0, 69, 0, 66, 0, 0, 0],
+  [74, 0, 71, 0, 67, 69, 71, 74], [78, 0, 76, 74, 0, 71, 0, 0], [76, 0, 74, 0, 72, 71, 69, 0], [69, 0, 0, 0, 0, 0, 0, 0],
+  [71, 0, 0, 74, 76, 0, 74, 0], [72, 0, 0, 76, 74, 0, 72, 0], [71, 0, 0, 74, 79, 0, 78, 76], [74, 0, 0, 0, 69, 0, 0, 0],
+  [72, 0, 0, 76, 81, 0, 79, 76], [79, 0, 76, 0, 74, 0, 72, 0], [74, 0, 76, 0, 78, 0, 81, 0], [79, 0, 0, 0, 0, 0, 0, 0]
 ];
-const BPM = 80, EIGHTH = 60 / BPM / 2;
+const BPM = 92, EIGHTH = 60 / BPM / 2;
 const Music = {
   timer: null, next: 0, step: 0, mode: 'camp', diveG: null, padF: null,
   start() {
     if (!ac || this.timer) return;
     this.diveG = ac.createGain(); this.diveG.gain.value = this.mode === 'dive' ? 1 : 0; this.diveG.connect(musicBus);
-    this.padF = ac.createBiquadFilter(); this.padF.type = 'lowpass'; this.padF.frequency.value = 900; this.padF.Q.value = 0.4; this.padF.connect(musicBus);
+    this.padF = ac.createBiquadFilter(); this.padF.type = 'lowpass'; this.padF.frequency.value = 1400; this.padF.Q.value = 0.4; this.padF.connect(musicBus);
     this.next = ac.currentTime + 0.1; this.step = 0;
     this.timer = setInterval(() => this.pump(), 60);
   },
@@ -114,7 +114,7 @@ const Music = {
     const dg = this.diveG;
     if (e === 0 || e === 4) tone(mtof(BASS[ch]), EIGHTH * 3.2, 'triangle', 0.26, null, 0, dg, t);
     if (e === 6) tone(mtof(BASS[ch] + 7), EIGHTH * 1.5, 'triangle', 0.16, null, 0, dg, t);
-    if (e % 2 === 1) noise(0.045, 8000, 1, 0.05, 'highpass', null, 0, dg, t);
+    if (e % 2 === 1) noise(0.04, 10000, 0.7, 0.035, 'highpass', null, 0, dg, t);
     if (!n && e % 2 === 0) tone(mtof(CH[ch][(e / 2) % 3] + 24), 0.22, 'sine', 0.05, null, 0, dg, t);
   }
 };

@@ -1,8 +1,8 @@
-/* Deep Buddies - main game: UI, input, loop, saving. */
+/* Storm Buddies - main game: UI, input, loop, saving. */
 (function () {
 'use strict';
 const D = window.SBData, C = window.SBCore, S = window.SBSprites, A = window.SBAudio, M = window.SBMaps, IC = window.SBIcons;
-const VERSION = 'v1';
+const VERSION = 'v2';
 const KEY = 'storm-buddies-save-v1';
 const $ = (id) => document.getElementById(id);
 const fmt = C.fmt;
@@ -11,10 +11,10 @@ const ic = (n, c) => IC.html(n, c);
 /* ---------- pixel UI frames (9-slice images drawn here, used by CSS border-image) ---------- */
 function makeFrames() {
   const F = {
-    wood: ['#1a0c04', '#8a5a32', '#5a3418', '#3a2010', '#2a170a'], dark: ['#0e0703', '#5a3c22', '#2a170b', '#1e1007', '#140a04'],
-    btn: ['#1a0c04', '#d09a5c', '#a0683a', '#6b4226', '#4a2c16'], gold: ['#4a2204', '#fff3a0', '#ffc53a', '#e08a1a', '#a85a0a'],
-    green: ['#062a0c', '#c8ffb0', '#6ee070', '#2aa040', '#18702a'], purple: ['#1e0a3a', '#ecd0ff', '#b48cff', '#6a3ab0', '#4a2490'],
-    red: ['#3a0a04', '#ffc0b0', '#ff7a6a', '#c03a2a', '#8a2010']
+    wood: ['#102038', '#4a78b0', '#2a5080', '#1a3860', '#0e2440'], dark: ['#081420', '#2a4868', '#183048', '#102038', '#0a1828'],
+    btn: ['#102038', '#a8d4ff', '#6a98c8', '#3a6888', '#244868'], gold: ['#3a2808', '#fff3a0', '#ffd84a', '#e0a020', '#a87010'],
+    green: ['#062a1c', '#b0ffe0', '#5ee0a8', '#2aa070', '#187050'], purple: ['#1e0a3a', '#ecd0ff', '#b48cff', '#6a3ab0', '#4a2490'],
+    red: ['#3a0a14', '#ffc0d0', '#ff7a9a', '#c03a5a', '#8a2038']
   };
   const rows = ['..kkkkkkkk..', '.kLLLLLLLLk.', 'kLLmmmmmmmdk', 'kLmmmmmmmmdk', 'kLmmmmmmmmdk', 'kLmmmmmmmmdk', 'kLmmmmmmmmdk', 'kLmmmmmmmmdk', 'kLmmmmmmmmdk', 'kmmmmmmmmddk', '.kDDDDDDDDk.', '..kkkkkkkk..'];
   const root = document.documentElement.style;
@@ -22,7 +22,6 @@ function makeFrames() {
     const [o, l, m, d, dd] = F[k], c = document.createElement('canvas'); c.width = c.height = 12; const x = c.getContext('2d');
     const pal = { k: o, L: l, m, d, D: dd };
     rows.forEach((r, j) => { for (let i = 0; i < 12; i++) if (r[i] !== '.') { x.fillStyle = pal[r[i]]; x.fillRect(i, j, 1, 1); } });
-    if (k === 'wood') { x.fillStyle = 'rgba(0,0,0,.18)'; for (let j = 3; j < 10; j += 3) x.fillRect(2, j, 8, 1); }
     root.setProperty('--fr-' + k, `url(${c.toDataURL()})`);
   }
 }
@@ -90,13 +89,13 @@ function runGoalCheck() {
 
 /* ---------- tutorial (first dive only) ---------- */
 const TUT_TXT = {
-  dig: () => isTouch ? ['Touch and drag up to rise!', 'An invisible joystick follows your finger.'] : ['Press the arrow keys or WASD to rise!', 'Hold up to float straight up.'],
-  ore: () => ['Grab the cloud scrap!', 'Scrap fills your bag. Sell it at the meadow.'],
-  chest: () => ['Open the treasure chest!', 'Chests are full of coins.'],
-  deep: () => ['Now rise as high as you can!', 'Your wind is running. Kit helps you clear clouds.']
+  rise: () => isTouch ? ['Touch and drag UP to rise!', 'An invisible joystick follows your finger.'] : ['Press W / ↑ to rise!', 'Hold up to float straight into the clouds.'],
+  scrap: () => ['Grab the wind orb scrap!', 'Scrap fills your basket. Sell it at the Sky Dock.'],
+  flask: () => ['Grab a gust flask!', 'Gusts refill your wind so you can climb higher.'],
+  free: () => ['Now rise as high as you can!', 'Wind runs out. Spend coins on the Rigging Map.']
 };
 function tutArt(step) {
-  if (step !== 'dig') return ic(step === 'ore' ? 'ore:#ff9a3c' : step === 'chest' ? 'chest' : 'lantern', 'big');
+  if (step !== 'rise') return ic(step === 'scrap' ? 'cloud:#a8d4ff' : step === 'flask' ? 'flask' : 'wind', 'big');
   if (isTouch) return `<div class="draghand"><div class="dot0"></div>${ic('hand')}</div>`;
   return `<div class="keys"><b class="k-up">W</b><b class="k-l">A</b><b class="k-d">${ic('height')}</b><b class="k-r">D</b></div>`;
 }
@@ -108,7 +107,7 @@ function tutShow(step) {
   $('tut').classList.remove('hidden');
   const card = $('tut').querySelector('.tut-card'); card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
 }
-const TUT_STEPS = ['dig', 'ore', 'chest', 'deep'];
+const TUT_STEPS = ['rise', 'scrap', 'flask', 'free'];
 function tutSet(i) {
   tut.step = i; tut.t = 0;
   const name = TUT_STEPS[i];
@@ -116,7 +115,7 @@ function tutSet(i) {
   if (i > 0) A.SFX.step2();
   tutShow(name);
   const sp = world.tutSpots;
-  R.arrow = name === 'ore' ? Object.assign({ text: 'Copper!' }, sp.ore) : name === 'chest' ? Object.assign({ text: 'Treasure!' }, sp.chest) : null;
+  R.arrow = name === 'scrap' ? Object.assign({ text: 'Scrap!' }, sp.scrap) : name === 'flask' ? Object.assign({ text: 'Gust!' }, sp.flask) : name === 'chest' ? Object.assign({ text: 'Crate!' }, sp.chest) : null;
 }
 function tutEnd(skipped) {
   if (!tut) return;
@@ -131,10 +130,10 @@ function tutUpdate(dt) {
   tut.t += dt;
   const w = world, name = TUT_STEPS[tut.step], sp = w.tutSpots;
   const gone = (p, t) => w.tile(p.x, p.y) !== t;
-  if (name === 'dig' && w.blocksP >= 3) tutSet(1);
-  else if (name === 'ore' && (w.bagN > 0 || gone(sp.ore, C.T.ORE) || w.player.y > sp.ore.y + 4 || tut.t > 20)) tutSet(2);
-  else if (name === 'chest' && (w.chestsN > 0 || gone(sp.chest, C.T.CHEST) || w.player.y > sp.chest.y + 4 || tut.t > 20)) tutSet(3);
-  else if (name === 'deep' && tut.t > 5) tutEnd();
+  if (name === 'rise' && w.blocksP >= 3) tutSet(1);
+  else if (name === 'scrap' && (w.bagN > 0 || gone(sp.scrap, C.T.SCRAP) || w.player.y > sp.scrap.y + 4 || tut.t > 20)) tutSet(2);
+  else if (name === 'flask' && (gone(sp.flask, C.T.FLASK) || w.player.y > sp.flask.y + 3 || tut.t > 22)) tutSet(3);
+  else if (name === 'free' && tut.t > 5) tutEnd();
 }
 $('tutSkip').onclick = () => tutEnd(true);
 
@@ -173,11 +172,11 @@ function finishRun() {
 }
 function showSummary(res, auto) {
   const rows = [[ic('cloud:#a8d4ff') + 'Scrap ×' + res.oreN, res.ore], [ic('height') + 'Height ' + res.depthMax + ' m', res.depth]];
-  if (res.bounty > 0) rows.push([ic('sword') + 'Monsters ×' + res.kills, res.bounty]);
-  if (res.chests > 0) rows.push([ic('chest') + 'Treasure ×' + res.chestsN, res.chests]);
+  if (res.bounty > 0) rows.push([ic('bolt') + 'Storm birds ×' + res.kills, res.bounty]);
+  if (res.chests > 0) rows.push([ic('chest') + 'Sky crates ×' + res.chestsN, res.chests]);
   const firstDive = save.runs === 1;
-  const reason = firstDive ? 'Ascent complete!' : world.endReason === 'oil' ? 'The wind died!' : 'Back to the meadow!';
-  let html = `<h2>${ic(firstDive ? 'star' : world.endReason === 'oil' ? 'lantern' : 'up')}${reason}</h2><div class="small">Kit guides the balloon back down</div>`;
+  const reason = firstDive ? 'Ascent complete!' : world.endReason === 'oil' ? 'The wind died!' : 'Back to the Sky Dock!';
+  let html = `<h2>${ic(firstDive ? 'star' : world.endReason === 'oil' ? 'wind' : 'up')}${reason}</h2><div class="small">Kit steers the gondola back to the Sky Dock</div>`;
   if (res.record && res.depthMax > 0) html += `<div class="record">${ic('trophy')}New record: ${res.depthMax} m!</div>`;
   html += rows.map((r) => `<div class="sumrow"><span>${r[0]}</span><span>${ic('coin')}${fmt(r[1])}</span></div>`).join('');
   html += `<div class="sumtotal">${ic('coin')}+${fmt(res.total)}</div>`;
@@ -187,7 +186,7 @@ function showSummary(res, auto) {
   if (auto) html += `<div class="small">Auto-bought ${auto} upgrades</div>`;
   const can = cheapestAffordable();
   if (can) html += `<div class="affordnote">${ic('sparkle')}You can buy an upgrade!</div>`;
-  html += `<div class="row"><button class="btn ${can ? 'go' : ''}" id="sumMap">${ic('rails')}Upgrades</button><button class="btn ${can ? '' : 'go'}" id="sumDig">${ic('balloon')}Dig again</button></div>`;
+  html += `<div class="row"><button class="btn ${can ? 'go' : ''}" id="sumMap">${ic('rails')}Rigging</button><button class="btn ${can ? '' : 'go'}" id="sumDig">${ic('balloon')}Rise again</button></div>`;
   $('sumCard').innerHTML = html;
   $('summary').classList.remove('hidden');
   if (res.record) A.SFX.record(); else A.SFX.coin();
@@ -197,7 +196,7 @@ function showSummary(res, auto) {
 function closeSummary() {
   $('summary').classList.add('hidden');
   $('hud').classList.add('hidden'); $('camp').classList.remove('hidden');
-  mode = 'camp'; world = null; A.setMusicMode('camp'); newPreview(); refreshMeadow(); campLayout();
+  mode = 'camp'; world = null; A.setMusicMode('camp'); newPreview(); refreshDock(); campLayout();
 }
 
 /* ---------- input ---------- */
@@ -241,7 +240,7 @@ function tapAction(cx, cy) {
   const t = canvasTileAt(cx, cy);
   if (t.x < 0 || t.x >= world.W || t.y < -1) return;
   if (cmdMode) { world.commandBuddy(t.x, Math.max(0, t.y)); toggleCmd(false); return; }
-  world.player.goal = { x: t.x, y: t.y }; world.player.goalT = 6; // short tap: go dig that block
+  world.player.goal = { x: t.x, y: t.y }; world.player.goalT = 6; // short tap: float to that cloud
 }
 cv.addEventListener('pointerdown', (e) => {
   A.init();
@@ -266,7 +265,7 @@ cv.addEventListener('pointercancel', (e) => joyEnd(e, true));
 cv.addEventListener('lostpointercapture', (e) => joyEnd(e, true));
 function useDyn() { if (world && world.useDynamite()) A.SFX.boom(); }
 function useFlare() { if (world && world.useFlare()) A.SFX.flare(); }
-function toggleCmd(v) { cmdMode = v === undefined ? !cmdMode : v; $('btnCmd').classList.toggle('on', cmdMode); if (cmdMode) hint(`Tap where Kit should rise! ${ic('paw')}`, 2.5); }
+function toggleCmd(v) { cmdMode = v === undefined ? !cmdMode : v; $('btnCmd').classList.toggle('on', cmdMode); if (cmdMode) hint(`Tap a cloud for Kit ${ic('paw')}`, 2.5); }
 $('btnDyn').onclick = useDyn; $('btnFlare').onclick = useFlare; $('btnCmd').onclick = () => toggleCmd();
 $('btnSurface').onclick = () => { if (world && !world.ended) { world.end('surface'); } };
 function setMute(m) {
@@ -352,8 +351,8 @@ function showTab(t) {
   $('camp').classList.toggle('opaque', t !== 'home');
   if (t === 'map') { ensureUpMap(); upMap.refresh(); mapHint(); if (!upMap._centered) { upMap._centered = true; upMap.focus(); } }
   if (t === 'relic') { ensurePrMap(); prMap.refresh(); renderCave(); if (!prMap._centered) { prMap._centered = true; prMap.center('p_value'); } }
-  if (t === 'set') $('verTxt').textContent = `Deep Buddies ${VERSION} · dives ${save.runs} · played ${Math.round(save.playTime / 60)} min underground`;
-  refreshMeadow();
+  if (t === 'set') $('verTxt').textContent = `Storm Buddies ${VERSION} · flights ${save.runs} · played ${Math.round(save.playTime / 60)} min aloft`;
+  refreshDock();
   campLayout();
 }
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { A.init(); A.SFX.click(); showTab(b.dataset.tab); }));
@@ -368,7 +367,7 @@ function campLayout() {
 }
 
 function cheapestAffordable() { return D.UPGRADES.some((u) => C.upState(save, u.id) === 'affordable'); }
-function refreshMeadow() {
+function refreshDock() {
   $('coinTxt').textContent = fmt(save.coins);
   $('relicTxt').textContent = fmt(save.relics);
   const prUnlocked = save.relicsTotal > 0 || save.bestEver >= D.CEILING * 0.5;
@@ -388,13 +387,13 @@ function refreshMeadow() {
   let note = '';
   if (save.bestDepth >= D.CEILING) note = `<div class="campnote">${ic('relic')}Storm-in ready: +${fmt(C.relicsFor(save))} Relics</div>`;
   if (can) note += `<div class="campnote">${ic('sparkle')}You can buy an upgrade!</div>`;
-  $('records').innerHTML = note + `<span>${ic('trophy')}Best ${save.bestEver} m</span><span>${ic('cloud')}Shaft ${save.bestDepth} m</span><span>${ic('balloon')}Dives ${save.runs}</span>` + (save.caveIns ? `<span>${ic('relic')}Storm-ins ${save.caveIns}</span>` : '');
+  $('records').innerHTML = note + `<span>${ic('trophy')}Best ${save.bestEver} m</span><span>${ic('cloud')}Ascent ${save.bestDepth} m</span><span>${ic('balloon')}Flights ${save.runs}</span>` + (save.caveIns ? `<span>${ic('relic')}Storm-ins ${save.caveIns}</span>` : '');
   $('autoWrap').classList.toggle('hidden', !C.plvl(save, 'p_auto'));
   $('autoBuy').checked = !!save.autoBuy;
   if (upMap && curTab === 'map') { upMap.refresh(); mapHint(); }
   if (prMap && curTab === 'relic') { prMap.refresh(); renderCave(); }
 }
-$('autoBuy').onchange = (e) => { save.autoBuy = e.target.checked; if (save.autoBuy) { save.tally.buys += C.autoBuy(save); C.checkGoals(save, null); } persist(); refreshMeadow(); };
+$('autoBuy').onchange = (e) => { save.autoBuy = e.target.checked; if (save.autoBuy) { save.tally.buys += C.autoBuy(save); C.checkGoals(save, null); } persist(); refreshDock(); };
 
 /* ---------- maps (revealed gradually) ---------- */
 let upMap = null, prMap = null, lastBuyUp = null, selUp = null, selPr = null;
@@ -444,8 +443,8 @@ function renderUpSheet() {
       A.SFX.buy(); lastBuyUp = u.id; save.tally.buys++;
       const done = C.checkGoals(save, null);
       persist(); toast(`${ic(u.icon)} ${gn || u.name}!`, 1000);
-      if (done.length) setTimeout(() => { A.SFX.goal(); toast(`${ic('check')} Goal complete!<small>${done.map((g) => g.text).join(' · ')} · +${fmt(done.reduce((a, g) => a + g.reward, 0))} coins</small>`, 2200); refreshMeadow(); }, 900);
-      refreshMeadow(); renderUpSheet();
+      if (done.length) setTimeout(() => { A.SFX.goal(); toast(`${ic('check')} Goal complete!<small>${done.map((g) => g.text).join(' · ')} · +${fmt(done.reduce((a, g) => a + g.reward, 0))} coins</small>`, 2200); refreshDock(); }, 900);
+      refreshDock(); renderUpSheet();
     } else A.SFX.nope();
   };
 }
@@ -461,7 +460,7 @@ function renderPrSheet() {
   sh.classList.remove('hidden');
   $('closePr').onclick = () => { sh.classList.add('hidden'); selPr = null; prMap.select(null); };
   const b = $('buyPr'); if (b) b.onclick = () => {
-    if (C.buyPr(save, u.id)) { A.SFX.buy(); if (u.helper) { A.SFX.record(); const hh = D.HELPERS.find(h => h.id === u.helper); toast(`${ic('sparkle')} New buddy!<small>${hh ? hh.name : u.helper}</small>`, 2500); } persist(); newPreview(); refreshMeadow(); renderPrSheet(); ensureUpMap(); if (upMap) upMap.refresh(); }
+    if (C.buyPr(save, u.id)) { A.SFX.buy(); if (u.helper) { A.SFX.record(); const hh = D.HELPERS.find(h => h.id === u.helper); toast(`${ic('sparkle')} New buddy!<small>${hh ? hh.name : u.helper}</small>`, 2500); } persist(); newPreview(); refreshDock(); renderPrSheet(); ensureUpMap(); if (upMap) upMap.refresh(); }
     else A.SFX.nope();
   };
 }
@@ -473,8 +472,8 @@ function renderCave() {
 }
 function askCaveIn() {
   const gain = C.relicsFor(save);
-  $('confCard').innerHTML = `<h2>${ic('burst')}Storm-in?</h2><p>The shaft collapses and you open a new one.</p>
-  <p>${ic('check')}Keep: Relics, Relic Map, unlocked helpers, best height</p><p>${ic('close')}Reset: coins, upgrades, ascent height</p>
+  $('confCard').innerHTML = `<h2>${ic('burst')}Storm-in?</h2><p>You punch the storm ceiling and open a new sky.</p>
+  <p>${ic('check')}Keep: Relics, Constellation Map, unlocked helpers, best height</p><p>${ic('close')}Reset: coins, upgrades, ascent height</p>
   <div class="sumtotal">${ic('relic')}+${fmt(gain)}</div><div class="row"><button class="btn" id="cNo">Not yet</button><button class="btn purple" id="cYes">${ic('burst')}Storm-in!</button></div>`;
   $('confirm').classList.remove('hidden');
   $('cNo').onclick = () => $('confirm').classList.add('hidden');
@@ -484,9 +483,9 @@ function askCaveIn() {
     if (g > 0) {
       A.SFX.prestige(); $('app').classList.add('shakeit'); setTimeout(() => $('app').classList.remove('shakeit'), 700);
       const done = C.checkGoals(save, null);
-      persist(); toast(`${ic('burst')} +${fmt(g)} Relics!<small>A fresh shaft awaits${done.length ? ' · goal complete!' : ''}</small>`, 2500);
+      persist(); toast(`${ic('burst')} +${fmt(g)} Relics!<small>A fresh sky opens${done.length ? ' · goal complete!' : ''}</small>`, 2500);
       if (upMap) { upMap._centered = false; }
-      newPreview(); refreshMeadow();
+      newPreview(); refreshDock();
     }
   };
 }
@@ -511,7 +510,7 @@ function tick(dt) {
   if (mode === 'run' && world) {
     acc += dt;
     let n = 0;
-    while (acc >= STEP && n < 5) { world.step(STEP, { dir: inputDir() }); acc -= STEP; n++; if (world.ended) break; }
+    while (acc >= STEP && n < 5) { world.tick(STEP, { dir: inputDir() }); acc -= STEP; n++; if (world.ended) break; }
     if (n >= 5) acc = 0;
     tutUpdate(dt);
     goalT -= dt; if (goalT <= 0 && world && !world.ended) { goalT = 0.25; runGoalCheck(); updateGoalChip(); }
@@ -551,14 +550,14 @@ setInterval(persist, 10000);
 
 onResize();
 newPreview();
-refreshMeadow();
+refreshDock();
 showTab('home');
 // brand-new players skip the menu and land straight in a guided first dive
 if (save.runs === 0 && !save.tutDone) startRun();
 else {
   $('camp').classList.remove('hidden'); campLayout();
   A.setMusicMode('camp');
-  if (migrated) setTimeout(() => toast(`${ic('sparkle')} Deep Buddies got an update!<small>Coins now count ×10. Your progress is all here.</small>`, 3200), 400);
+  if (migrated) setTimeout(() => toast(`${ic('sparkle')} Welcome to Storm Buddies!<small>Your progress carried over.</small>`, 2800), 400);
 }
 requestAnimationFrame(frame);
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});

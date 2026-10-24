@@ -147,6 +147,7 @@ function helper(hid) {
   const rows = hid === 'owl' ? OWL : hid === 'fox' ? FOX : hid === 'bunny' ? BUNNY : KITTEN;
   return (cache[key] = fromRows(rows, pal));
 }
+function bird(type) { return wisp(type); }
 function wisp(type) {
   const key = 'w:' + (type.tint || 'x');
   if (cache[key]) return cache[key];
@@ -203,5 +204,5 @@ function chestTex() {
   return (cache.chest = c);
 }
 
-root.SBSprites = { pilot, balloon, helper, wisp, cloudTex, scrapTex, flaskTex, chestTex, shade, fromRows, canvas };
+root.SBSprites = { pilot, balloon, helper, wisp, bird, cloudTex, scrapTex, flaskTex, chestTex, shade, fromRows, canvas };
 })(self);
